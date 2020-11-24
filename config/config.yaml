@@ -1,0 +1,16 @@
+name: testCluster
+spec:
+  listeners:
+  - name: listerner1
+    address: 0.0.0.0
+    port: 9000
+    routes:
+    - name:
+      prefix: /
+      clusters:
+      - cluster1
+  clusters:
+  - name: cluster1
+    endpoints:
+    - address: 172.22.0.2
+      port: 8080

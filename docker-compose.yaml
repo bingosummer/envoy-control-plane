@@ -1,0 +1,36 @@
+version: "3.8"
+services:
+  envoy:
+    image: envoyproxy/envoy:v1.16.1
+    networks:
+    - envoymesh
+    volumes:
+    - ./hack/bootstrap.yaml:/etc/envoy/bootstrap.yaml
+    command: ["/usr/local/bin/envoy", "-c", "/etc/envoy/bootstrap.yaml"]
+    ports:
+    - "9000:9000"
+    - "9003:9003"
+    links:
+    - xds
+    - echo-server
+  xds:
+    build:
+      context: .
+      dockerfile: Dockerfile.xds
+    expose:
+    - 9002
+    networks:
+    - envoymesh
+    volumes:
+    - ./config:/config
+
+  echo-server:
+    image: jmalloc/echo-server
+    networks:
+    - envoymesh
+    expose:
+    - 8080
+
+
+networks:
+  envoymesh: {}
