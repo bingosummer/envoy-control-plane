@@ -8,5 +8,5 @@ type ExtAuthConfig struct {
 type ExtAuthConfigSpec struct {
 	RequiredBearerToken string            `yaml:"requiredToken"`
 	AuthorizationToken  string            `yaml:"authToken"`
-	AdditionalHeaders   map[string]string `yaml:"addtionalHeaders"`
+	AdditionalHeaders   map[string]string `yaml:"additionalHeaders"`
 }

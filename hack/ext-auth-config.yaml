@@ -1,0 +1,7 @@
+name: ext-auth
+spec:
+  requiredToken: foobar2
+  authToken: this is very cool
+  additionalHeaders:
+    foo-1: bar-2
+    foo-2: bar-3

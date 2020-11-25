@@ -38,6 +38,7 @@ func main() {
 	}()
 
 	srv := server.NewServer()
+	srv.ParseConfig(path.Join(watchDirectoryFileName, configFile))
 
 	go func() {
 		ctx := context.Background()

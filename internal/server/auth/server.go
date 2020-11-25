@@ -5,14 +5,15 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"strings"
 
-	"google.golang.org/grpc"
-
+	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	authservice "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
 	"github.com/gogo/googleapis/google/rpc"
 	"github.com/weinong/envoy-control-plane/apis/v1alpha1"
 	"github.com/weinong/envoy-control-plane/internal/utils"
-	rpcstatus "google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/grpc"
 )
 
 const (
@@ -30,14 +31,52 @@ func (s *Server) ParseConfig(file string) {
 		return
 	}
 
+	log.Printf("incoming external auth config is %+v", config)
 	s.ExtAuthConfig = config
 }
 
 func (s *Server) Check(ctx context.Context, req *authservice.CheckRequest) (*authservice.CheckResponse, error) {
-	log.Println("SGTM!!")
-	resp := &authservice.CheckResponse{
-		Status: &rpcstatus.Status{Code: int32(rpc.OK)},
+
+	token := strings.TrimPrefix(req.Attributes.Request.Http.Headers["authorization"], "Bearer ")
+	log.Printf("incoming bearer token is %s", token)
+
+	if s.ExtAuthConfig != nil && s.RequiredBearerToken != "" && s.RequiredBearerToken != token {
+		log.Println("Sorry about it!!")
+		return &authservice.CheckResponse{
+			Status: &status.Status{Code: int32(rpc.PERMISSION_DENIED)},
+		}, nil
 	}
+	resp := &authservice.CheckResponse{
+		Status: &status.Status{Code: int32(rpc.OK)},
+	}
+	headers := []*core.HeaderValueOption{}
+	if s.ExtAuthConfig != nil {
+		if s.AuthorizationToken != "" {
+			headers = append(headers, &core.HeaderValueOption{
+				Header: &core.HeaderValue{
+					Key:   "Authorization",
+					Value: fmt.Sprintf("Bearer %s", s.AuthorizationToken),
+				},
+			})
+		}
+
+		for k, v := range s.ExtAuthConfigSpec.AdditionalHeaders {
+			headers = append(headers, &core.HeaderValueOption{
+				Header: &core.HeaderValue{
+					Key:   k,
+					Value: v,
+				},
+			})
+		}
+	}
+	if len(headers) > 0 {
+		resp.HttpResponse = &authservice.CheckResponse_OkResponse{
+			OkResponse: &authservice.OkHttpResponse{
+				Headers: headers,
+			},
+		}
+	}
+	log.Println("SGTM!!")
 	return resp, nil
 }
 
