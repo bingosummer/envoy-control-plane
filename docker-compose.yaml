@@ -5,7 +5,7 @@ services:
     networks:
     - envoymesh
     volumes:
-    - ./hack/bootstrap.yaml:/etc/envoy/bootstrap.yaml
+    - ./hack/envoy-bootstrap.yaml:/etc/envoy/bootstrap.yaml
     command: ["/usr/local/bin/envoy", "-c", "/etc/envoy/bootstrap.yaml"]
     ports:
     - "9000:9000"
@@ -19,13 +19,17 @@ services:
     networks:
     - envoymesh
     volumes:
-    - ./config:/config
+    - ./hack:/config
+    command: ["/bin/envoy-xds-server", "-configFile", "xds-config.yaml"]
   ext-auth:
     build:
       context: .
       dockerfile: Dockerfile.auth
     networks:
     - envoymesh
+    volumes:
+    - ./hack:/config
+    command: ["/bin/envoy-auth-server", "-configFile", "ext-auth-config.yaml"]
   echo-server:
     image: jmalloc/echo-server
     networks:

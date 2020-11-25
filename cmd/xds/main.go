@@ -73,7 +73,8 @@ func main() {
 		case msg := <-notifyCh:
 			file := path.Join(watchDirectoryFileName, configFile)
 			if msg.FilePath != file {
-				log.Info("skip", msg.FilePath)
+				log.Info("skip ", msg.FilePath)
+				continue
 			}
 			log.Infof("process file %v", msg)
 			proc.ProcessFile(msg)

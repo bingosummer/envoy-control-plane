@@ -11,6 +11,7 @@ import (
 
 	"github.com/envoyproxy/go-control-plane/pkg/cache/v3"
 	"github.com/weinong/envoy-control-plane/internal/resources"
+	"github.com/weinong/envoy-control-plane/internal/utils"
 	"github.com/weinong/envoy-control-plane/internal/watcher"
 	"github.com/weinong/envoy-control-plane/internal/xdscache"
 )
@@ -57,7 +58,7 @@ func (p *Processor) newSnapshotVersion() string {
 func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 
 	// Parse file into object
-	envoyConfig, err := parseYaml(file.FilePath)
+	envoyConfig, err := utils.ParseEnvoyConfig(file.FilePath)
 	if err != nil {
 		log.Printf("error parsing yaml file: %s", err)
 		return
