@@ -10,9 +10,6 @@ services:
     ports:
     - "9000:9000"
     - "9003:9003"
-    links:
-    - xds
-    - echo-server
   xds:
     build:
       context: .
@@ -23,7 +20,12 @@ services:
     - envoymesh
     volumes:
     - ./config:/config
-
+  ext-auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    networks:
+    - envoymesh
   echo-server:
     image: jmalloc/echo-server
     networks:

@@ -14,6 +14,19 @@ static_resources:
                       port_value: 9002
       http2_protocol_options: {}
       name: xds_cluster
+    - connect_timeout: 1s
+      type: strict_dns
+      load_assignment:
+        cluster_name: ext-auth
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: ext-auth
+                      port_value: 9002
+      http2_protocol_options: {}
+      name: ext-auth
 dynamic_resources:
   cds_config:
     resource_api_version: V3

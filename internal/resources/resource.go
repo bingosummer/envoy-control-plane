@@ -5,14 +5,18 @@ import (
 
 	"github.com/golang/protobuf/ptypes"
 
+	accesslog "github.com/envoyproxy/go-control-plane/envoy/config/accesslog/v3"
 	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	core "github.com/envoyproxy/go-control-plane/envoy/config/core/v3"
 	endpoint "github.com/envoyproxy/go-control-plane/envoy/config/endpoint/v3"
 	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	envoy_file_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
+	extauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_authz/v3"
 	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
+	"github.com/weinong/envoy-control-plane/internal/utils"
 )
 
 const (
@@ -134,13 +138,35 @@ func MakeHTTPListener(listenerName, route, address string, port uint32) *listene
 				RouteConfigName: "listener_0",
 			},
 		},
-		HttpFilters: []*hcm.HttpFilter{{
-			Name: wellknown.Router,
-		}},
-	}
-	pbst, err := ptypes.MarshalAny(manager)
-	if err != nil {
-		panic(err)
+		AccessLog: []*accesslog.AccessLog{
+			{
+				Name: wellknown.FileAccessLog,
+				ConfigType: &accesslog.AccessLog_TypedConfig{
+					TypedConfig: utils.MustMarshalAny(&envoy_file_v3.FileAccessLog{
+						Path: "/dev/stdout",
+					}),
+				},
+			},
+		},
+		HttpFilters: []*hcm.HttpFilter{
+			{
+				Name: wellknown.HTTPExternalAuthorization,
+				ConfigType: &hcm.HttpFilter_TypedConfig{
+					TypedConfig: utils.MustMarshalAny(&extauth.ExtAuthz{
+						Services: &extauth.ExtAuthz_GrpcService{
+							GrpcService: &core.GrpcService{
+								TargetSpecifier: &core.GrpcService_EnvoyGrpc_{
+									EnvoyGrpc: &core.GrpcService_EnvoyGrpc{ClusterName: "ext-auth"},
+								},
+							},
+						},
+						TransportApiVersion: core.ApiVersion_V3}),
+				},
+			},
+			{
+				Name: wellknown.Router,
+			},
+		},
 	}
 
 	return &listener.Listener{
@@ -160,7 +186,7 @@ func MakeHTTPListener(listenerName, route, address string, port uint32) *listene
 			Filters: []*listener.Filter{{
 				Name: wellknown.HTTPConnectionManager,
 				ConfigType: &listener.Filter_TypedConfig{
-					TypedConfig: pbst,
+					TypedConfig: utils.MustMarshalAny(manager),
 				},
 			}},
 		}},
