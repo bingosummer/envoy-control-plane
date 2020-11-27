@@ -74,7 +74,7 @@ func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 		p.xdsCache.AddListener(l.Name, lRoutes, l.Address, l.Port)
 
 		for _, r := range l.Routes {
-			p.xdsCache.AddRoute(r.Name, r.Prefix, r.ClusterNames)
+			p.xdsCache.AddRoute(r.Name, r.Prefix, r.Header, r.Cluster)
 		}
 	}
 

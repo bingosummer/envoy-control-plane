@@ -61,11 +61,12 @@ func (xds *XDSCache) AddListener(name string, routeNames []string, address strin
 	}
 }
 
-func (xds *XDSCache) AddRoute(name, prefix string, clusters []string) {
+func (xds *XDSCache) AddRoute(name, prefix string, header string, cluster string) {
 	xds.Routes[name] = resources.Route{
 		Name:    name,
 		Prefix:  prefix,
-		Cluster: clusters[0],
+		Header:  header,
+		Cluster: cluster,
 	}
 }
 

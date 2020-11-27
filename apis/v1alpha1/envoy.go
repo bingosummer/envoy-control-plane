@@ -18,9 +18,10 @@ type Listener struct {
 }
 
 type Route struct {
-	Name         string   `yaml:"name"`
-	Prefix       string   `yaml:"prefix"`
-	ClusterNames []string `yaml:"clusters"`
+	Name    string `yaml:"name"`
+	Prefix  string `yaml:"prefix"`
+	Header  string `yaml:"header"`
+	Cluster string `yaml:"cluster"`
 }
 
 type Cluster struct {

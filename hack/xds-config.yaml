@@ -7,10 +7,18 @@ spec:
     routes:
     - name:
       prefix: /
-      clusters:
-      - cluster1
+      header: x-route
+      cluster: echo-server-3
   clusters:
-  - name: cluster1
+  - name: echo-server-1
     endpoints:
     - address: 172.22.0.2
+      port: 8080
+  - name: echo-server-2
+    endpoints:
+    - address: 172.22.0.4
+      port: 8080
+  - name: echo-server-3
+    endpoints:
+    - address: 172.22.0.7
       port: 8080

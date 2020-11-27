@@ -30,12 +30,27 @@ services:
     volumes:
     - ./hack:/config
     command: ["/bin/envoy-auth-server", "-configFile", "ext-auth-config.yaml"]
-  echo-server:
+  echo-server-1:
     image: jmalloc/echo-server
     networks:
     - envoymesh
     expose:
     - 8080
+    hostname: echo-server-1
+  echo-server-2:
+    image: jmalloc/echo-server
+    networks:
+    - envoymesh
+    expose:
+    - 8080
+    hostname: echo-server-2
+  echo-server-3:
+    image: jmalloc/echo-server
+    networks:
+    - envoymesh
+    expose:
+    - 8080
+    hostname: echo-server-3
 
 
 networks:

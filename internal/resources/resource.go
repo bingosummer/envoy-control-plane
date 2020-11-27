@@ -34,6 +34,7 @@ type Listener struct {
 type Route struct {
 	Name    string
 	Prefix  string
+	Header  string
 	Cluster string
 }
 
@@ -100,20 +101,26 @@ func MakeRoute(routes []Route) *route.RouteConfiguration {
 	var rts []*route.Route
 
 	for _, r := range routes {
+		action := &route.Route_Route{}
+		if r.Header != "" {
+			action.Route = &route.RouteAction{
+				ClusterSpecifier: &route.RouteAction_ClusterHeader{
+					ClusterHeader: r.Header,
+				},
+			}
+		} else {
+			action.Route = &route.RouteAction{
+				ClusterSpecifier: &route.RouteAction_Cluster{
+					Cluster: r.Cluster,
+				},
+			}
+		}
 		rts = append(rts, &route.Route{
 			//Name: r.Name,
 			Match: &route.RouteMatch{
-				PathSpecifier: &route.RouteMatch_Prefix{
-					Prefix: r.Prefix,
-				},
+				PathSpecifier: &route.RouteMatch_Prefix{Prefix: r.Prefix},
 			},
-			Action: &route.Route_Route{
-				Route: &route.RouteAction{
-					ClusterSpecifier: &route.RouteAction_Cluster{
-						Cluster: r.Cluster,
-					},
-				},
-			},
+			Action: action,
 		})
 	}
 
