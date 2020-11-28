@@ -16,7 +16,7 @@ func (xds *XDSCache) ClusterContents() []types.Resource {
 	var r []types.Resource
 
 	for _, c := range xds.Clusters {
-		r = append(r, resources.MakeCluster(c.Name))
+		r = append(r, resources.MakeCluster(c.Name, c.IsHTTPS))
 	}
 
 	return r
@@ -61,18 +61,20 @@ func (xds *XDSCache) AddListener(name string, routeNames []string, address strin
 	}
 }
 
-func (xds *XDSCache) AddRoute(name, prefix string, header string, cluster string) {
+func (xds *XDSCache) AddRoute(name, prefix string, header string, cluster string, hostRewrite string) {
 	xds.Routes[name] = resources.Route{
-		Name:    name,
-		Prefix:  prefix,
-		Header:  header,
-		Cluster: cluster,
+		Name:        name,
+		Prefix:      prefix,
+		Header:      header,
+		Cluster:     cluster,
+		HostRewrite: hostRewrite,
 	}
 }
 
-func (xds *XDSCache) AddCluster(name string) {
+func (xds *XDSCache) AddCluster(name string, isHTTPS bool) {
 	xds.Clusters[name] = resources.Cluster{
-		Name: name,
+		Name:    name,
+		IsHTTPS: isHTTPS,
 	}
 }
 

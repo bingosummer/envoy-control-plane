@@ -18,14 +18,16 @@ type Listener struct {
 }
 
 type Route struct {
-	Name    string `yaml:"name"`
-	Prefix  string `yaml:"prefix"`
-	Header  string `yaml:"header"`
-	Cluster string `yaml:"cluster"`
+	Name        string `yaml:"name"`
+	Prefix      string `yaml:"prefix"`
+	Header      string `yaml:"header"`
+	Cluster     string `yaml:"cluster"`
+	HostRewrite string `yaml:"hostRewrite"`
 }
 
 type Cluster struct {
 	Name      string     `yaml:"name"`
+	IsHTTPS   bool       `yaml:"isHTTPS"`
 	Endpoints []Endpoint `yaml:"endpoints"`
 }
 

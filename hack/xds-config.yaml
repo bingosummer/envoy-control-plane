@@ -7,8 +7,8 @@ spec:
     routes:
     - name:
       prefix: /
-      header: x-route
-      cluster: echo-server-3
+      hostRewrite: www.envoyproxy.io
+      cluster: envoy-web
   clusters:
   - name: echo-server-1
     endpoints:
@@ -22,3 +22,8 @@ spec:
     endpoints:
     - address: 172.22.0.7
       port: 8080
+  - name: envoy-web
+    isHTTPS: true
+    endpoints:
+    - address: 206.189.73.52
+      port: 443

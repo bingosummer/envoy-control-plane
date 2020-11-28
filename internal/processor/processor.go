@@ -74,13 +74,13 @@ func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 		p.xdsCache.AddListener(l.Name, lRoutes, l.Address, l.Port)
 
 		for _, r := range l.Routes {
-			p.xdsCache.AddRoute(r.Name, r.Prefix, r.Header, r.Cluster)
+			p.xdsCache.AddRoute(r.Name, r.Prefix, r.Header, r.Cluster, r.HostRewrite)
 		}
 	}
 
 	// Parse Clusters
 	for _, c := range envoyConfig.Clusters {
-		p.xdsCache.AddCluster(c.Name)
+		p.xdsCache.AddCluster(c.Name, c.IsHTTPS)
 
 		// Parse endpoints
 		for _, e := range c.Endpoints {

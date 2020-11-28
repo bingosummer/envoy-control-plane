@@ -14,6 +14,7 @@ import (
 	envoy_file_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/access_loggers/file/v3"
 	extauth "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/http/ext_authz/v3"
 	hcm "github.com/envoyproxy/go-control-plane/envoy/extensions/filters/network/http_connection_manager/v3"
+	envoy_tls_v3 "github.com/envoyproxy/go-control-plane/envoy/extensions/transport_sockets/tls/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	"github.com/envoyproxy/go-control-plane/pkg/wellknown"
 	"github.com/weinong/envoy-control-plane/internal/utils"
@@ -32,14 +33,16 @@ type Listener struct {
 }
 
 type Route struct {
-	Name    string
-	Prefix  string
-	Header  string
-	Cluster string
+	Name        string
+	Prefix      string
+	Header      string
+	Cluster     string
+	HostRewrite string
 }
 
 type Cluster struct {
 	Name      string
+	IsHTTPS   bool
 	Endpoints []Endpoint
 }
 
@@ -48,8 +51,8 @@ type Endpoint struct {
 	UpstreamPort uint32
 }
 
-func MakeCluster(clusterName string) *cluster.Cluster {
-	return &cluster.Cluster{
+func MakeCluster(clusterName string, isHTTPS bool) *cluster.Cluster {
+	c := &cluster.Cluster{
 		Name:                 clusterName,
 		ConnectTimeout:       ptypes.DurationProto(5 * time.Second),
 		ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_EDS},
@@ -58,6 +61,15 @@ func MakeCluster(clusterName string) *cluster.Cluster {
 		DnsLookupFamily:  cluster.Cluster_V4_ONLY,
 		EdsClusterConfig: makeEDSCluster(),
 	}
+	if isHTTPS {
+		c.TransportSocket = &core.TransportSocket{
+			Name: wellknown.TransportSocketTls,
+			ConfigType: &core.TransportSocket_TypedConfig{
+				TypedConfig: utils.MustMarshalAny(&envoy_tls_v3.UpstreamTlsContext{}),
+			},
+		}
+	}
+	return c
 }
 
 func makeEDSCluster() *cluster.Cluster_EdsClusterConfig {
@@ -113,6 +125,11 @@ func MakeRoute(routes []Route) *route.RouteConfiguration {
 				ClusterSpecifier: &route.RouteAction_Cluster{
 					Cluster: r.Cluster,
 				},
+			}
+		}
+		if r.HostRewrite != "" {
+			action.Route.HostRewriteSpecifier = &route.RouteAction_HostRewriteLiteral{
+				HostRewriteLiteral: r.HostRewrite,
 			}
 		}
 		rts = append(rts, &route.Route{
