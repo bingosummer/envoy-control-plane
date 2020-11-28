@@ -6,6 +6,8 @@ services:
     - envoymesh
     volumes:
     - ./hack/envoy-bootstrap.yaml:/etc/envoy/bootstrap.yaml
+    - ./cert.pem:/etc/envoy/cert.pem
+    - ./key.pem:/etc/envoy/key.pem
     command: ["/usr/local/bin/envoy", "-c", "/etc/envoy/bootstrap.yaml"]
     ports:
     - "9000:9000"

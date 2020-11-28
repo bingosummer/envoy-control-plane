@@ -36,7 +36,7 @@ func (xds *XDSCache) ListenerContents() []types.Resource {
 	var r []types.Resource
 
 	for _, l := range xds.Listeners {
-		r = append(r, resources.MakeHTTPListener(l.Name, l.RouteNames[0], l.Address, l.Port))
+		r = append(r, resources.MakeHTTPListener(l.Name, l.RouteNames[0], l.Address, l.Port, l.CertFile, l.KeyFile))
 	}
 
 	return r
@@ -52,12 +52,14 @@ func (xds *XDSCache) EndpointsContents() []types.Resource {
 	return r
 }
 
-func (xds *XDSCache) AddListener(name string, routeNames []string, address string, port uint32) {
+func (xds *XDSCache) AddListener(name string, routeNames []string, address string, port uint32, certFile, keyFile string) {
 	xds.Listeners[name] = resources.Listener{
 		Name:       name,
 		Address:    address,
 		Port:       port,
 		RouteNames: routeNames,
+		CertFile:   certFile,
+		KeyFile:    keyFile,
 	}
 }
 

@@ -5,6 +5,7 @@ Inspired by https://github.com/stevesloka/envoy-xds-server, this repo is my play
 ## To Run
 
 ```sh
+make cert
 docker-compose up -d
 ```
 

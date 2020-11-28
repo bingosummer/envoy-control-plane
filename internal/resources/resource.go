@@ -30,6 +30,8 @@ type Listener struct {
 	Address    string
 	Port       uint32
 	RouteNames []string
+	CertFile   string
+	KeyFile    string
 }
 
 type Route struct {
@@ -151,7 +153,7 @@ func MakeRoute(routes []Route) *route.RouteConfiguration {
 	}
 }
 
-func MakeHTTPListener(listenerName, route, address string, port uint32) *listener.Listener {
+func MakeHTTPListener(listenerName, route, address string, port uint32, certFile, keyFile string) *listener.Listener {
 	// HTTP filter configuration
 	manager := &hcm.HttpConnectionManager{
 		CodecType:  hcm.HttpConnectionManager_AUTO,
@@ -193,7 +195,7 @@ func MakeHTTPListener(listenerName, route, address string, port uint32) *listene
 		},
 	}
 
-	return &listener.Listener{
+	l := &listener.Listener{
 		Name: listenerName,
 		Address: &core.Address{
 			Address: &core.Address_SocketAddress{
@@ -215,6 +217,30 @@ func MakeHTTPListener(listenerName, route, address string, port uint32) *listene
 			}},
 		}},
 	}
+
+	if certFile != "" && keyFile != "" {
+		l.FilterChains[0].TransportSocket = &core.TransportSocket{
+			Name: wellknown.TransportSocketTls,
+			ConfigType: &core.TransportSocket_TypedConfig{
+				TypedConfig: utils.MustMarshalAny(&envoy_tls_v3.DownstreamTlsContext{
+					CommonTlsContext: &envoy_tls_v3.CommonTlsContext{
+						TlsCertificates: []*envoy_tls_v3.TlsCertificate{
+							{
+								PrivateKey: &core.DataSource{
+									Specifier: &core.DataSource_Filename{Filename: keyFile},
+								},
+								CertificateChain: &core.DataSource{
+									Specifier: &core.DataSource_Filename{Filename: certFile},
+								},
+							},
+						},
+					},
+				}),
+			},
+		}
+	}
+
+	return l
 }
 
 func makeConfigSource() *core.ConfigSource {

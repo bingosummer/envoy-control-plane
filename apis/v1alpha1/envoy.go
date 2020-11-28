@@ -11,10 +11,12 @@ type Spec struct {
 }
 
 type Listener struct {
-	Name    string  `yaml:"name"`
-	Address string  `yaml:"address"`
-	Port    uint32  `yaml:"port"`
-	Routes  []Route `yaml:"routes"`
+	Name     string  `yaml:"name"`
+	Address  string  `yaml:"address"`
+	Port     uint32  `yaml:"port"`
+	Routes   []Route `yaml:"routes"`
+	CertFile string  `yaml:"certFile"`
+	KeyFile  string  `yaml:"keyFile"`
 }
 
 type Route struct {
