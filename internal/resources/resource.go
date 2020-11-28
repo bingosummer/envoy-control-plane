@@ -1,6 +1,7 @@
 package resources
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
@@ -42,9 +43,10 @@ type Route struct {
 }
 
 type Cluster struct {
-	Name      string
-	IsHTTPS   bool
-	Endpoints []Endpoint
+	Name          string
+	IsHTTPS       bool
+	DiscoveryType string
+	Endpoints     []Endpoint
 }
 
 type Endpoint struct {
@@ -52,17 +54,27 @@ type Endpoint struct {
 	UpstreamPort uint32
 }
 
-func MakeCluster(clusterName string, isHTTPS bool) *cluster.Cluster {
-	c := &cluster.Cluster{
-		Name:                 clusterName,
-		ConnectTimeout:       ptypes.DurationProto(5 * time.Second),
-		ClusterDiscoveryType: &cluster.Cluster_Type{Type: cluster.Cluster_EDS},
-		LbPolicy:             cluster.Cluster_ROUND_ROBIN,
-		//LoadAssignment:       makeEndpoint(clusterName, UpstreamHost),
-		DnsLookupFamily:  cluster.Cluster_V4_ONLY,
-		EdsClusterConfig: makeEDSCluster(),
+func (resource Cluster) MakeCluster() *cluster.Cluster {
+	var clusterType *cluster.Cluster_Type
+	switch resource.DiscoveryType {
+	case "StrictDNS":
+		clusterType = &cluster.Cluster_Type{Type: cluster.Cluster_STRICT_DNS}
+	case "LogicalDNS":
+		clusterType = &cluster.Cluster_Type{Type: cluster.Cluster_LOGICAL_DNS}
+	case "Static":
+		clusterType = &cluster.Cluster_Type{Type: cluster.Cluster_STATIC}
+	default:
+		panic(fmt.Sprintf("unknown cluster discovery type: %s", resource.DiscoveryType))
 	}
-	if isHTTPS {
+	c := &cluster.Cluster{
+		Name:                 resource.Name,
+		ConnectTimeout:       ptypes.DurationProto(5 * time.Second),
+		ClusterDiscoveryType: clusterType,
+		LbPolicy:             cluster.Cluster_ROUND_ROBIN,
+		LoadAssignment:       makeEndpoint(resource.Name, resource.Endpoints),
+		DnsLookupFamily:      cluster.Cluster_V4_ONLY,
+	}
+	if resource.IsHTTPS {
 		c.TransportSocket = &core.TransportSocket{
 			Name: wellknown.TransportSocketTls,
 			ConfigType: &core.TransportSocket_TypedConfig{
@@ -79,7 +91,7 @@ func makeEDSCluster() *cluster.Cluster_EdsClusterConfig {
 	}
 }
 
-func MakeEndpoint(clusterName string, eps []Endpoint) *endpoint.ClusterLoadAssignment {
+func makeEndpoint(clusterName string, eps []Endpoint) *endpoint.ClusterLoadAssignment {
 	var endpoints []*endpoint.LbEndpoint
 
 	for _, e := range eps {

@@ -11,18 +11,22 @@ spec:
       prefix: /
   clusters:
   - name: echo-server-1
+    discoveryType: StrictDNS
     endpoints:
-    - address: 172.22.0.3
+    - address: echo-server-1
       port: 8080
   - name: echo-server-2
+    discoveryType: StrictDNS
     endpoints:
-    - address: 172.22.0.2
+    - address: echo-server-2
       port: 8080
   - name: echo-server-3
+    discoveryType: StrictDNS
     endpoints:
-    - address: 172.22.0.4
+    - address: echo-server-3
       port: 8080
   - name: envoy-web
+    discoveryType: Static
     isHTTPS: true
     endpoints:
     - address: 206.189.73.52

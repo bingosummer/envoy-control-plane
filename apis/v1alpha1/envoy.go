@@ -26,10 +26,19 @@ type Route struct {
 	HostRewrite string `yaml:"hostRewrite"`
 }
 
+type DiscoveryType string
+
+const (
+	LogicalDNS DiscoveryType = "LogicalDNS"
+	StrictDNS                = "StrictDNS"
+	Static                   = "Static"
+)
+
 type Cluster struct {
-	Name      string     `yaml:"name"`
-	IsHTTPS   bool       `yaml:"isHTTPS"`
-	Endpoints []Endpoint `yaml:"endpoints"`
+	Name          string `yaml:"name"`
+	IsHTTPS       bool   `yaml:"isHTTPS"`
+	DiscoveryType `yaml:"discoveryType"`
+	Endpoints     []Endpoint `yaml:"endpoints"`
 }
 
 type Endpoint struct {

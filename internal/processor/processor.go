@@ -80,23 +80,18 @@ func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 
 	// Parse Clusters
 	for _, c := range envoyConfig.Clusters {
-		p.xdsCache.AddCluster(c.Name, c.IsHTTPS)
-
-		// Parse endpoints
-		for _, e := range c.Endpoints {
-			p.xdsCache.AddEndpoint(c.Name, e.Address, e.Port)
-		}
+		p.xdsCache.AddCluster(c)
 	}
 
 	// Create the snapshot that we'll serve to Envoy
 	snapshot := cache.NewSnapshot(
-		p.newSnapshotVersion(),         // version
-		p.xdsCache.EndpointsContents(), // endpoints
-		p.xdsCache.ClusterContents(),   // clusters
-		p.xdsCache.RouteContents(),     // routes
-		p.xdsCache.ListenerContents(),  // listeners
-		[]types.Resource{},             // runtimes
-		[]types.Resource{},             // secrets
+		p.newSnapshotVersion(),        // version
+		[]types.Resource{},            // endpoints
+		p.xdsCache.ClusterContents(),  // clusters
+		p.xdsCache.RouteContents(),    // routes
+		p.xdsCache.ListenerContents(), // listeners
+		[]types.Resource{},            // runtimes
+		[]types.Resource{},            // secrets
 	)
 
 	if err := snapshot.Consistent(); err != nil {

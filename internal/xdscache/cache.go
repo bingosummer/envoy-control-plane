@@ -2,6 +2,7 @@ package xdscache
 
 import (
 	"github.com/envoyproxy/go-control-plane/pkg/cache/types"
+	"github.com/weinong/envoy-control-plane/apis/v1alpha1"
 	"github.com/weinong/envoy-control-plane/internal/resources"
 )
 
@@ -16,7 +17,7 @@ func (xds *XDSCache) ClusterContents() []types.Resource {
 	var r []types.Resource
 
 	for _, c := range xds.Clusters {
-		r = append(r, resources.MakeCluster(c.Name, c.IsHTTPS))
+		r = append(r, c.MakeCluster())
 	}
 
 	return r
@@ -42,16 +43,6 @@ func (xds *XDSCache) ListenerContents() []types.Resource {
 	return r
 }
 
-func (xds *XDSCache) EndpointsContents() []types.Resource {
-	var r []types.Resource
-
-	for _, c := range xds.Clusters {
-		r = append(r, resources.MakeEndpoint(c.Name, c.Endpoints))
-	}
-
-	return r
-}
-
 func (xds *XDSCache) AddListener(name string, routeNames []string, address string, port uint32, certFile, keyFile string) {
 	xds.Listeners[name] = resources.Listener{
 		Name:       name,
@@ -72,20 +63,19 @@ func (xds *XDSCache) AddRoute(name, prefix string, header string, hostRewrite st
 	}
 }
 
-func (xds *XDSCache) AddCluster(name string, isHTTPS bool) {
-	xds.Clusters[name] = resources.Cluster{
-		Name:    name,
-		IsHTTPS: isHTTPS,
+func (xds *XDSCache) AddCluster(cluster v1alpha1.Cluster) {
+	c := resources.Cluster{
+		Name:          cluster.Name,
+		IsHTTPS:       cluster.IsHTTPS,
+		DiscoveryType: string(cluster.DiscoveryType),
 	}
-}
 
-func (xds *XDSCache) AddEndpoint(clusterName, upstreamHost string, upstreamPort uint32) {
-	cluster := xds.Clusters[clusterName]
+	for _, v := range cluster.Endpoints {
+		c.Endpoints = append(c.Endpoints, resources.Endpoint{
+			UpstreamHost: v.Address,
+			UpstreamPort: v.Port,
+		})
+	}
 
-	cluster.Endpoints = append(cluster.Endpoints, resources.Endpoint{
-		UpstreamHost: upstreamHost,
-		UpstreamPort: upstreamPort,
-	})
-
-	xds.Clusters[clusterName] = cluster
+	xds.Clusters[cluster.Name] = c
 }
