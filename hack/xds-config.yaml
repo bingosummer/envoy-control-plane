@@ -1,26 +1,26 @@
 name: testCluster
 spec:
   listeners:
-  - name: listerner1
+  - name: listener1
     address: 0.0.0.0
     port: 9000
+    certFile: /etc/envoy/cert.pem
+    keyFile: /etc/envoy/key.pem
     routes:
     - name:
       prefix: /
-      hostRewrite: www.envoyproxy.io
-      cluster: envoy-web
   clusters:
   - name: echo-server-1
     endpoints:
-    - address: 172.22.0.2
+    - address: 172.22.0.3
       port: 8080
   - name: echo-server-2
     endpoints:
-    - address: 172.22.0.4
+    - address: 172.22.0.2
       port: 8080
   - name: echo-server-3
     endpoints:
-    - address: 172.22.0.7
+    - address: 172.22.0.4
       port: 8080
   - name: envoy-web
     isHTTPS: true

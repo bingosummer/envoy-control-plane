@@ -1,6 +1,10 @@
 name: ext-auth
 spec:
-  requiredToken: foobar2
+  requiredTokenByRoute: 
+    echo-server-1: echo-server-1-password
+    echo-server-2: echo-server-2-password
+    echo-server-3: echo-server-3-password
+    envoy-web: envoy-web-password
   authToken: this is very cool
   additionalHeaders:
     foo-1: bar-2

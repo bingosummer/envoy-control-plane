@@ -23,7 +23,6 @@ type Route struct {
 	Name        string `yaml:"name"`
 	Prefix      string `yaml:"prefix"`
 	Header      string `yaml:"header"`
-	Cluster     string `yaml:"cluster"`
 	HostRewrite string `yaml:"hostRewrite"`
 }
 

@@ -40,8 +40,17 @@ func (s *Server) Check(ctx context.Context, req *authservice.CheckRequest) (*aut
 	token := strings.TrimPrefix(req.Attributes.Request.Http.Headers["authorization"], "Bearer ")
 	log.Printf("incoming bearer token is %s", token)
 
-	if s.ExtAuthConfig != nil && s.RequiredBearerToken != "" && s.RequiredBearerToken != token {
-		log.Println("Sorry about it!!")
+	route := ""
+	if s.ExtAuthConfig != nil {
+		// find the route associated with this bearer token
+		for k, v := range s.RequiredTokenByRoutes {
+			if token == v {
+				route = k
+			}
+		}
+	}
+	if route == "" {
+		log.Printf("cannot find matched route with bearer token %s", token)
 		return &authservice.CheckResponse{
 			Status: &status.Status{Code: int32(rpc.PERMISSION_DENIED)},
 		}, nil
@@ -49,7 +58,14 @@ func (s *Server) Check(ctx context.Context, req *authservice.CheckRequest) (*aut
 	resp := &authservice.CheckResponse{
 		Status: &status.Status{Code: int32(rpc.OK)},
 	}
-	headers := []*core.HeaderValueOption{}
+	headers := []*core.HeaderValueOption{
+		{
+			Header: &core.HeaderValue{
+				Key:   "x-route",
+				Value: route,
+			},
+		},
+	}
 	if s.ExtAuthConfig != nil {
 		if s.AuthorizationToken != "" {
 			headers = append(headers, &core.HeaderValueOption{

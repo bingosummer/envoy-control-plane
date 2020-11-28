@@ -38,7 +38,6 @@ type Route struct {
 	Name        string
 	Prefix      string
 	Header      string
-	Cluster     string
 	HostRewrite string
 }
 
@@ -116,18 +115,10 @@ func MakeRoute(routes []Route) *route.RouteConfiguration {
 
 	for _, r := range routes {
 		action := &route.Route_Route{}
-		if r.Header != "" {
-			action.Route = &route.RouteAction{
-				ClusterSpecifier: &route.RouteAction_ClusterHeader{
-					ClusterHeader: r.Header,
-				},
-			}
-		} else {
-			action.Route = &route.RouteAction{
-				ClusterSpecifier: &route.RouteAction_Cluster{
-					Cluster: r.Cluster,
-				},
-			}
+		action.Route = &route.RouteAction{
+			ClusterSpecifier: &route.RouteAction_ClusterHeader{
+				ClusterHeader: "x-route",
+			},
 		}
 		if r.HostRewrite != "" {
 			action.Route.HostRewriteSpecifier = &route.RouteAction_HostRewriteLiteral{
@@ -186,7 +177,9 @@ func MakeHTTPListener(listenerName, route, address string, port uint32, certFile
 								},
 							},
 						},
-						TransportApiVersion: core.ApiVersion_V3}),
+						TransportApiVersion: core.ApiVersion_V3,
+						// clear route cache to allow ext authz to affect routing decision
+						ClearRouteCache: true}),
 				},
 			},
 			{

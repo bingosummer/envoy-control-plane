@@ -13,7 +13,7 @@ After all the containers are running, find out the container IP for `echo-server
 The XDS should automatically reload upon file changes.
 
 ```sh
-docker ps | grep jmalloc/echo-server | awk '{print $1}' | xargs -L 1 docker inspect -f '{{range .NetworkSettings.Networks}}{{println .IPAddress}}{{end}}'
+docker ps | grep jmalloc/echo-server | awk '{print $1}' | xargs -L 1 docker inspect -f '{{.Name}}:{{range .NetworkSettings.Networks}}{{println .IPAddress}}{{end}}'
 ```
 
 The reason that this is needed is because you cannot use DNS name in EDS. So for now you have to find the IP of `echo-server`
