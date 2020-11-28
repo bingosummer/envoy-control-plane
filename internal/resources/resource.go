@@ -193,6 +193,14 @@ func MakeHTTPListener(listenerName, route, address string, port uint32, certFile
 				Name: wellknown.Router,
 			},
 		},
+		UpgradeConfigs: []*hcm.HttpConnectionManager_UpgradeConfig{
+			{
+				UpgradeType: "websocket",
+			},
+			{
+				UpgradeType: "spdy/3.1",
+			},
+		},
 	}
 
 	l := &listener.Listener{
