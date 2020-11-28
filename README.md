@@ -21,5 +21,5 @@ The reason that this is needed is because you cannot use DNS name in EDS. So for
 ## Test
 
 ```sh
-curl -v -H "Authorization: Bearer foobar2" http://localhost:9000
+curl -k -v -H "Authorization: Bearer echo-server-1-password" https://localhost:9000
 ```
