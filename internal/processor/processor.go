@@ -17,6 +17,7 @@ import (
 )
 
 type Processor struct {
+	name   string
 	cache  cache.SnapshotCache
 	nodeID string
 
@@ -26,8 +27,9 @@ type Processor struct {
 	xdsCache xdscache.XDSCache
 }
 
-func NewProcessor(cache cache.SnapshotCache, nodeID string) *Processor {
+func NewProcessor(name string, cache cache.SnapshotCache, nodeID string) *Processor {
 	return &Processor{
+		name:            name,
 		cache:           cache,
 		nodeID:          nodeID,
 		snapshotVersion: rand.Int63n(1000),
@@ -61,6 +63,11 @@ func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 	envoyConfig, err := utils.ParseEnvoyConfig(file.FilePath)
 	if err != nil {
 		log.Printf("error parsing yaml file: %s", err)
+		return
+	}
+
+	if envoyConfig.Name != p.name {
+		log.Printf("skip config from %s", file.FilePath)
 		return
 	}
 

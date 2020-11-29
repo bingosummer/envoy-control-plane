@@ -19,6 +19,7 @@ var (
 	configFile             string
 	port                   uint
 	nodeID                 string
+	clusterName            string
 )
 
 func init() {
@@ -35,6 +36,8 @@ func init() {
 	flag.StringVar(&watchDirectoryFileName, "watchDirectoryFileName", "/config", "full path to directory to watch for files")
 
 	flag.StringVar(&configFile, "configFile", "config.yaml", "config file name to watch")
+
+	flag.StringVar(&clusterName, "clusterName", "cluster1", "cluster name that configuration will apply to")
 }
 
 func main() {
@@ -44,8 +47,7 @@ func main() {
 	cache := cache.NewSnapshotCache(false, cache.IDHash{}, l)
 
 	// Create a processor
-	proc := processor.NewProcessor(
-		cache, nodeID)
+	proc := processor.NewProcessor(clusterName, cache, nodeID)
 
 	// Create initial snapshot from file
 	proc.ProcessFile(watcher.NotifyMessage{
@@ -71,9 +73,7 @@ func main() {
 	for {
 		select {
 		case msg := <-notifyCh:
-			file := path.Join(watchDirectoryFileName, configFile)
-			if msg.FilePath != file {
-				log.Info("skip ", msg.FilePath)
+			if msg.Operation == watcher.Remove {
 				continue
 			}
 			log.Infof("process file %v", msg)

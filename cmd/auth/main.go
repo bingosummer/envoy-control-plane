@@ -19,15 +19,14 @@ var (
 
 func init() {
 	// The port that this auth server listens on
-	flag.StringVar(&clusterName, "name", "cluster1", "cluster name")
-
-	// The port that this auth server listens on
 	flag.UintVar(&port, "port", 9002, "auth server port")
 
 	// Define the directory to watch for Envoy configuration files
 	flag.StringVar(&watchDirectoryFileName, "watchDirectoryFileName", "/config", "full path to directory to watch for files")
 
 	flag.StringVar(&configFile, "configFile", "config.yaml", "config file name to watch")
+
+	flag.StringVar(&clusterName, "clusterName", "cluster1", "cluster name that configuration will apply to")
 }
 
 func main() {
@@ -52,9 +51,7 @@ func main() {
 	for {
 		select {
 		case msg := <-notifyCh:
-			file := path.Join(watchDirectoryFileName, configFile)
-			if msg.FilePath != file {
-				log.Println("skip", msg.FilePath)
+			if msg.Operation == watcher.Remove {
 				continue
 			}
 			log.Printf("process file %v", msg)

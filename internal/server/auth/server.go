@@ -32,6 +32,10 @@ func (s *Server) ParseConfig(file string) {
 		return
 	}
 
+	if config.Name != s.ClusterName {
+		log.Printf("skip config from %s", file)
+		return
+	}
 	log.Printf("incoming external auth config is %+v", config)
 	s.EnvoyConfig = config
 }

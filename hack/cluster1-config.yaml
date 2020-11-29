@@ -1,4 +1,4 @@
-name: testCluster
+name: cluster1
 spec:
   listeners:
   - name: listener1
