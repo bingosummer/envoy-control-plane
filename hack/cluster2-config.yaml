@@ -1,0 +1,26 @@
+name: cluster2
+spec:
+  listeners:
+  - name: listener1
+    address: 0.0.0.0
+    port: 9000
+    certFile: /etc/envoy/cert.pem
+    keyFile: /etc/envoy/key.pem
+    routes:
+    - name:
+      prefix: /
+
+  clusters:
+  - name: echo-server-4
+    discoveryType: StrictDNS
+    endpoints:
+    - address: echo-server-4
+      port: 8080
+
+  ext-authz:
+    routeKey: x-backend-route
+    routes:
+    - cluster: echo-server-4
+      requiredToken: echo-server-4-password
+      outgoingToken: outgoingToken1
+      rewriteHost: echo-server-4:9000

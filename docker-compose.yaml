@@ -1,18 +1,18 @@
 version: "3.8"
 services:
-  envoy:
+  envoy-1:
     image: envoyproxy/envoy:v1.16.1
     networks:
     - envoymesh
     volumes:
-    - ./hack/envoy-bootstrap.yaml:/etc/envoy/bootstrap.yaml
+    - ./hack/cluster1-envoy-bootstrap.yaml:/etc/envoy/bootstrap.yaml
     - ./cert.pem:/etc/envoy/cert.pem
     - ./key.pem:/etc/envoy/key.pem
     command: ["/usr/local/bin/envoy", "-c", "/etc/envoy/bootstrap.yaml"]
     ports:
     - "9000:9000"
     - "9003:9003"
-  xds:
+  xds-1:
     build:
       context: .
       dockerfile: Dockerfile.xds
@@ -22,8 +22,8 @@ services:
     - envoymesh
     volumes:
     - ./hack:/config
-    command: ["/bin/envoy-xds-server", "-configFile", "cluster1-config.yaml"]
-  ext-auth:
+    command: ["/bin/envoy-xds-server", "-configFile", "cluster1-config.yaml", "-clusterName", "cluster1"]
+  ext-auth-1:
     build:
       context: .
       dockerfile: Dockerfile.auth
@@ -31,7 +31,40 @@ services:
     - envoymesh
     volumes:
     - ./hack:/config
-    command: ["/bin/envoy-auth-server", "-configFile", "cluster1-config.yaml"]
+    command: ["/bin/envoy-auth-server", "-configFile", "cluster1-config.yaml", "-clusterName", "cluster1"]
+
+  envoy-2:
+    image: envoyproxy/envoy:v1.16.1
+    networks:
+    - envoymesh
+    volumes:
+    - ./hack/cluster2-envoy-bootstrap.yaml:/etc/envoy/bootstrap.yaml
+    - ./cert.pem:/etc/envoy/cert.pem
+    - ./key.pem:/etc/envoy/key.pem
+    command: ["/usr/local/bin/envoy", "-c", "/etc/envoy/bootstrap.yaml"]
+    ports:
+    - "9004:9003"
+  xds-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.xds
+    expose:
+    - 9002
+    networks:
+    - envoymesh
+    volumes:
+    - ./hack:/config
+    command: ["/bin/envoy-xds-server", "-configFile", "cluster2-config.yaml", "-clusterName", "cluster2"]
+  ext-auth-2:
+    build:
+      context: .
+      dockerfile: Dockerfile.auth
+    networks:
+    - envoymesh
+    volumes:
+    - ./hack:/config
+    command: ["/bin/envoy-auth-server", "-configFile", "cluster2-config.yaml", "-clusterName", "cluster2"]
+
   echo-server-1:
     image: jmalloc/echo-server
     networks:
@@ -54,6 +87,13 @@ services:
     - 8080
     hostname: echo-server-3
 
+  echo-server-4:
+    image: jmalloc/echo-server
+    networks:
+    - envoymesh
+    expose:
+    - 8080
+    hostname: echo-server-4
 
 networks:
   envoymesh: {}

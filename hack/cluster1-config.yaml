@@ -32,8 +32,15 @@ spec:
     endpoints:
     - address: www.envoyproxy.io
       port: 443
+  - name: cluster2
+    discoveryType: StrictDNS
+    isHTTPS: true
+    endpoints:
+    - address: envoy-2
+      port: 9000
 
   ext-authz:
+    routeKey: x-route
     routes:
     - cluster: echo-server-1
       requiredToken: echo-server-1-password
@@ -53,3 +60,8 @@ spec:
     - cluster: envoy-web
       requiredToken: envoy-web-password
       rewriteHost: www.envoyproxy.io:443
+    - cluster: cluster2
+      requiredToken: cluster2-password
+      outgoingToken: echo-server-4-password
+      additionalHeaders:
+        x-backend-route: echo-server-4

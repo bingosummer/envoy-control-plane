@@ -48,7 +48,8 @@ type Endpoint struct {
 }
 
 type ExtAuthz struct {
-	Routes []ExtAuthzRoute `yaml:"routes"`
+	RouteKey string          `yaml:"routeKey"`
+	Routes   []ExtAuthzRoute `yaml:"routes"`
 }
 
 type ExtAuthzRoute struct {
@@ -56,5 +57,6 @@ type ExtAuthzRoute struct {
 	RequiredToken     string            `yaml:"requiredToken"`
 	OutgoingToken     string            `yaml:"outgoingToken"`
 	RewriteHost       string            `yaml:"rewriteHost"`
+	RewriteRoute      string            `yaml:"rewriteRoute"`
 	AdditionalHeaders map[string]string `yaml:"additionalHeaders"`
 }

@@ -14,4 +14,7 @@ docker-compose up -d
 ```sh
 curl -k -v -H "x-route: echo-server-1" -H "Authorization: Bearer echo-server-1-password" https://localhost:9000
 curl -k -v -H "x-route: envoy-web" -H "Authorization: Bearer envoy-web-password" https://localhost:9000
+
+# route to another envoy
+curl -k -v -H "x-route: cluster2" -H "Authorization: Bearer cluster2-password" https://localhost:9000
 ```

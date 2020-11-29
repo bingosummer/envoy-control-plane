@@ -71,6 +71,9 @@ func (p *Processor) ProcessFile(file watcher.NotifyMessage) {
 		return
 	}
 
+	// hack: pass route key to xds cache
+	p.xdsCache.RouteKey = envoyConfig.RouteKey
+
 	// Parse Listeners
 	for _, l := range envoyConfig.Listeners {
 		var lRoutes []string

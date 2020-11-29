@@ -11,6 +11,7 @@ type XDSCache struct {
 	Routes    map[string]resources.Route
 	Clusters  map[string]resources.Cluster
 	Endpoints map[string]resources.Endpoint
+	RouteKey  string
 }
 
 func (xds *XDSCache) ClusterContents() []types.Resource {
@@ -30,7 +31,7 @@ func (xds *XDSCache) RouteContents() []types.Resource {
 		routesArray = append(routesArray, r)
 	}
 
-	return []types.Resource{resources.MakeRoute(routesArray)}
+	return []types.Resource{resources.MakeRoute(xds.RouteKey, routesArray)}
 }
 
 func (xds *XDSCache) ListenerContents() []types.Resource {

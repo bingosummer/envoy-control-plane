@@ -122,14 +122,14 @@ func makeEndpoint(clusterName string, eps []Endpoint) *endpoint.ClusterLoadAssig
 	}
 }
 
-func MakeRoute(routes []Route) *route.RouteConfiguration {
+func MakeRoute(routeKey string, routes []Route) *route.RouteConfiguration {
 	var rts []*route.Route
 
 	for _, r := range routes {
 		action := &route.Route_Route{}
 		action.Route = &route.RouteAction{
 			ClusterSpecifier: &route.RouteAction_ClusterHeader{
-				ClusterHeader: "x-route",
+				ClusterHeader: routeKey,
 			},
 		}
 		if r.HostRewrite != "" {

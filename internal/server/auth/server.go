@@ -42,16 +42,18 @@ func (s *Server) ParseConfig(file string) {
 
 func (s *Server) Check(ctx context.Context, req *authservice.CheckRequest) (*authservice.CheckResponse, error) {
 
-	if s.EnvoyConfig == nil {
+	if s.EnvoyConfig == nil || s.EnvoyConfig.ExtAuthz.RouteKey == "" {
 		log.Printf("ext-authz is not configured. access is denied")
 		return &authservice.CheckResponse{
 			Status: &status.Status{Code: int32(rpc.PERMISSION_DENIED)},
 		}, nil
 	}
 
+	routeKey := s.EnvoyConfig.ExtAuthz.RouteKey
+
 	token := strings.TrimPrefix(req.Attributes.Request.Http.Headers["authorization"], "Bearer ")
-	targetCluster := req.Attributes.Request.Http.Headers["x-route"]
-	log.Printf("x-route: %s, bearer token: %s", targetCluster, token)
+	targetCluster := req.Attributes.Request.Http.Headers[routeKey]
+	log.Printf("%s: %s, bearer token: %s", routeKey, targetCluster, token)
 
 	var desiredRoute *v1alpha1.ExtAuthzRoute
 
@@ -74,7 +76,7 @@ func (s *Server) Check(ctx context.Context, req *authservice.CheckRequest) (*aut
 	headers := []*core.HeaderValueOption{
 		{
 			Header: &core.HeaderValue{
-				Key:   "x-route",
+				Key:   routeKey,
 				Value: targetCluster,
 			},
 		},
