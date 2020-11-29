@@ -12,5 +12,6 @@ docker-compose up -d
 ## Test
 
 ```sh
-curl -k -v -H "Authorization: Bearer echo-server-1-password" https://localhost:9000
+curl -k -v -H "x-route: echo-server-1" -H "Authorization: Bearer echo-server-1-password" https://localhost:9000
+curl -k -v -H "x-route: envoy-web" -H "Authorization: Bearer envoy-web-password" https://localhost:9000
 ```

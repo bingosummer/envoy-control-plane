@@ -11,12 +11,16 @@ import (
 )
 
 var (
+	clusterName            string
 	port                   uint
 	watchDirectoryFileName string
 	configFile             string
 )
 
 func init() {
+	// The port that this auth server listens on
+	flag.StringVar(&clusterName, "name", "cluster1", "cluster name")
+
 	// The port that this auth server listens on
 	flag.UintVar(&port, "port", 9002, "auth server port")
 
@@ -37,7 +41,7 @@ func main() {
 		watcher.Watch(watchDirectoryFileName, notifyCh)
 	}()
 
-	srv := server.NewServer()
+	srv := server.NewServer(clusterName)
 	srv.ParseConfig(path.Join(watchDirectoryFileName, configFile))
 
 	go func() {

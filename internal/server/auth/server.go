@@ -21,40 +21,49 @@ const (
 )
 
 type Server struct {
-	*v1alpha1.ExtAuthConfig
+	ClusterName string
+	*v1alpha1.EnvoyConfig
 }
 
 func (s *Server) ParseConfig(file string) {
-	config, err := utils.ParseExtAuthConfig(file)
+	config, err := utils.ParseEnvoyConfig(file)
 	if err != nil {
 		log.Printf("unable to read ext auth config: %s", err)
 		return
 	}
 
 	log.Printf("incoming external auth config is %+v", config)
-	s.ExtAuthConfig = config
+	s.EnvoyConfig = config
 }
 
 func (s *Server) Check(ctx context.Context, req *authservice.CheckRequest) (*authservice.CheckResponse, error) {
 
-	token := strings.TrimPrefix(req.Attributes.Request.Http.Headers["authorization"], "Bearer ")
-	log.Printf("incoming bearer token is %s", token)
-
-	route := ""
-	if s.ExtAuthConfig != nil {
-		// find the route associated with this bearer token
-		for k, v := range s.RequiredTokenByRoutes {
-			if token == v {
-				route = k
-			}
-		}
-	}
-	if route == "" {
-		log.Printf("cannot find matched route with bearer token %s", token)
+	if s.EnvoyConfig == nil {
+		log.Printf("ext-authz is not configured. access is denied")
 		return &authservice.CheckResponse{
 			Status: &status.Status{Code: int32(rpc.PERMISSION_DENIED)},
 		}, nil
 	}
+
+	token := strings.TrimPrefix(req.Attributes.Request.Http.Headers["authorization"], "Bearer ")
+	targetCluster := req.Attributes.Request.Http.Headers["x-route"]
+	log.Printf("x-route: %s, bearer token: %s", targetCluster, token)
+
+	var desiredRoute *v1alpha1.ExtAuthzRoute
+
+	for _, r := range s.ExtAuthz.Routes {
+		if r.Cluster == targetCluster {
+			desiredRoute = &r
+			break
+		}
+	}
+	if desiredRoute == nil || desiredRoute.RequiredToken != token {
+		log.Printf("no route is configured for %s or token is mismatched, desired route: %+v", targetCluster, desiredRoute)
+		return &authservice.CheckResponse{
+			Status: &status.Status{Code: int32(rpc.PERMISSION_DENIED)},
+		}, nil
+	}
+
 	resp := &authservice.CheckResponse{
 		Status: &status.Status{Code: int32(rpc.OK)},
 	}
@@ -62,28 +71,34 @@ func (s *Server) Check(ctx context.Context, req *authservice.CheckRequest) (*aut
 		{
 			Header: &core.HeaderValue{
 				Key:   "x-route",
-				Value: route,
+				Value: targetCluster,
 			},
 		},
 	}
-	if s.ExtAuthConfig != nil {
-		if s.AuthorizationToken != "" {
-			headers = append(headers, &core.HeaderValueOption{
-				Header: &core.HeaderValue{
-					Key:   "Authorization",
-					Value: fmt.Sprintf("Bearer %s", s.AuthorizationToken),
-				},
-			})
-		}
+	if desiredRoute.RewriteHost != "" {
+		headers = append(headers, &core.HeaderValueOption{
+			Header: &core.HeaderValue{
+				Key:   ":authority",
+				Value: desiredRoute.RewriteHost,
+			},
+		})
+	}
+	if desiredRoute.OutgoingToken != "" {
+		headers = append(headers, &core.HeaderValueOption{
+			Header: &core.HeaderValue{
+				Key:   "Authorization",
+				Value: fmt.Sprintf("Bearer %s", desiredRoute.OutgoingToken),
+			},
+		})
+	}
 
-		for k, v := range s.ExtAuthConfigSpec.AdditionalHeaders {
-			headers = append(headers, &core.HeaderValueOption{
-				Header: &core.HeaderValue{
-					Key:   k,
-					Value: v,
-				},
-			})
-		}
+	for k, v := range desiredRoute.AdditionalHeaders {
+		headers = append(headers, &core.HeaderValueOption{
+			Header: &core.HeaderValue{
+				Key:   k,
+				Value: v,
+			},
+		})
 	}
 	if len(headers) > 0 {
 		resp.HttpResponse = &authservice.CheckResponse_OkResponse{
@@ -96,8 +111,8 @@ func (s *Server) Check(ctx context.Context, req *authservice.CheckRequest) (*aut
 	return resp, nil
 }
 
-func NewServer() *Server {
-	return &Server{}
+func NewServer(name string) *Server {
+	return &Server{ClusterName: name}
 }
 
 func Run(ctx context.Context, server *Server, port uint) {

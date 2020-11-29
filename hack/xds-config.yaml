@@ -9,6 +9,7 @@ spec:
     routes:
     - name:
       prefix: /
+
   clusters:
   - name: echo-server-1
     discoveryType: StrictDNS
@@ -26,8 +27,29 @@ spec:
     - address: echo-server-3
       port: 8080
   - name: envoy-web
-    discoveryType: Static
+    discoveryType: StrictDNS
     isHTTPS: true
     endpoints:
-    - address: 206.189.73.52
+    - address: www.envoyproxy.io
       port: 443
+
+  ext-authz:
+    routes:
+    - cluster: echo-server-1
+      requiredToken: echo-server-1-password
+      outgoingToken: outgoingToken1
+      rewriteHost: echo-server-1:9000
+      additionalHeaders:
+        foo-1: bar-2
+        foo-2: bar-2
+    - cluster: echo-server-2
+      requiredToken: echo-server-2-password
+      outgoingToken: outgoingToken2
+      rewriteHost: echo-server-2:9000
+    - cluster: echo-server-3
+      requiredToken: echo-server-3-password
+      outgoingToken: outgoingToken3
+      rewriteHost: echo-server-3:9000
+    - cluster: envoy-web
+      requiredToken: envoy-web-password
+      rewriteHost: www.envoyproxy.io:443

@@ -31,7 +31,7 @@ services:
     - envoymesh
     volumes:
     - ./hack:/config
-    command: ["/bin/envoy-auth-server", "-configFile", "ext-auth-config.yaml"]
+    command: ["/bin/envoy-auth-server", "-configFile", "xds-config.yaml"]
   echo-server-1:
     image: jmalloc/echo-server
     networks:

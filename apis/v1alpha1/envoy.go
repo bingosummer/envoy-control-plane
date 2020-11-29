@@ -8,6 +8,7 @@ type EnvoyConfig struct {
 type Spec struct {
 	Listeners []Listener `yaml:"listeners"`
 	Clusters  []Cluster  `yaml:"clusters"`
+	ExtAuthz  `yaml:"ext-authz"`
 }
 
 type Listener struct {
@@ -44,4 +45,16 @@ type Cluster struct {
 type Endpoint struct {
 	Address string `yaml:"address"`
 	Port    uint32 `yaml:"port"`
+}
+
+type ExtAuthz struct {
+	Routes []ExtAuthzRoute `yaml:"routes"`
+}
+
+type ExtAuthzRoute struct {
+	Cluster           string            `yaml:"cluster"`
+	RequiredToken     string            `yaml:"requiredToken"`
+	OutgoingToken     string            `yaml:"outgoingToken"`
+	RewriteHost       string            `yaml:"rewriteHost"`
+	AdditionalHeaders map[string]string `yaml:"additionalHeaders"`
 }
