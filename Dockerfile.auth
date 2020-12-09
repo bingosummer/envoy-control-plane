@@ -16,6 +16,6 @@ COPY . .
 RUN CGO_ENABLED=0 go build -o envoy-auth-server ./cmd/auth/main.go
 
 # Copy into scratch
-FROM scratch
+FROM ubuntu
 COPY --from=builder /build/envoy-auth-server /bin/envoy-auth-server
 CMD ["/bin/envoy-auth-server"]

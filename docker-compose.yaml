@@ -8,7 +8,7 @@ services:
     - ./hack/cluster1-envoy-bootstrap.yaml:/etc/envoy/bootstrap.yaml
     - ./cert.pem:/etc/envoy/cert.pem
     - ./key.pem:/etc/envoy/key.pem
-    command: ["/usr/local/bin/envoy", "-c", "/etc/envoy/bootstrap.yaml"]
+    command: ["/usr/local/bin/envoy", "-c", "/etc/envoy/bootstrap.yaml", "-l", "debug"]
     ports:
     - "9000:9000"
     - "9003:9003"
@@ -41,7 +41,7 @@ services:
     - ./hack/cluster2-envoy-bootstrap.yaml:/etc/envoy/bootstrap.yaml
     - ./cert.pem:/etc/envoy/cert.pem
     - ./key.pem:/etc/envoy/key.pem
-    command: ["/usr/local/bin/envoy", "-c", "/etc/envoy/bootstrap.yaml"]
+    command: ["/usr/local/bin/envoy", "-c", "/etc/envoy/bootstrap.yaml", "-l", "debug"]
     ports:
     - "9004:9003"
   xds-2:
